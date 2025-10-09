@@ -3,7 +3,7 @@ import random
 
 # pygame setup
 pygame.init()
-screen = pygame.display.set_mode((1280, 720))
+screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Shootout Night")
 icon_image = pygame.image.load("Assets/ShootoutNightIcon.png")
 pygame.display.set_icon(icon_image)
