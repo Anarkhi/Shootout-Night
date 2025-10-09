@@ -3,7 +3,7 @@ import random
 
 # pygame setup
 pygame.init()
-screen = pygame.display.set_mode((800, 600))
+screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Shootout Night")
 icon_image = pygame.image.load("Assets/ShootoutNightIcon.png")
 pygame.display.set_icon(icon_image)
@@ -17,7 +17,7 @@ score = 0
 level = 1
 levelTimer = 500
 levelMult = 1
-ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.ogg")
+ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.mp3")
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(-1)
 
@@ -116,9 +116,9 @@ while running:
                     playerCollisionRect = pygame.Rect(player_pos.x-15,player_pos.y-15,30,30)
                     if bulletCollisionRect.colliderect(playerCollisionRect):
                         bullets.pop(bullets.index(bullet))
-                        running = False
+                        running = False         
         else: bullets.pop(bullets.index(bullet))
-
+        
 
     keysPress = pygame.key.get_pressed()
     run = pygame.key.get_mods()
@@ -139,7 +139,7 @@ while running:
             levelTimer = int(500/levelMult)
         if level == 4:
             level = "MAX"
-
+    
     #Inimigos Spawnando
     if enemySpawnCD > 0:
         enemySpawnCD -=1
@@ -183,10 +183,10 @@ while running:
             thug.y +=thug.speed
         elif (thug.y > thug.targetStopY):
             thug.y -=thug.speed
-
-
+        
+    
     #for thug in enemies:
-
+        
     # Player Atirando
     if shotCD > 0:
         shotCD -= 1
@@ -219,14 +219,14 @@ while running:
         if keysPress[pygame.K_LSHIFT] or keysPress[pygame.K_RSHIFT]:
             player_pos.x += (2*protagonist.speed) * dt
         else : player_pos.x += protagonist.speed * dt
-
+ 
 
 # DrawScreen
 
-
+    
     #//run = pygame.key.get_mods()
     #if run [pygame.KMOD_SHIFT]:
-
+        
     # flip() the display to put your work on screen
 
 
