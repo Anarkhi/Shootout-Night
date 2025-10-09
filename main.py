@@ -5,7 +5,7 @@ import random
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Shootout Night")
-icon_image = pygame.image.load("dist/Arquivos/ShootoutNightIcon.png")
+icon_image = pygame.image.load("Assets/ShootoutNightIcon.png")
 pygame.display.set_icon(icon_image)
 clock = pygame.time.Clock()
 dt = 0
@@ -17,7 +17,7 @@ score = 0
 level = 1
 levelTimer = 500
 levelMult = 1
-ambientTune = pygame.mixer.music.load("dist/Arquivos/ShootoutNightAmbience.mp3")
+ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.mp3")
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(-1)
 
@@ -43,11 +43,6 @@ class projectile(object):
         self.direction = direction
         self.spawnX = spawnX
         self.spawnY = spawnY
-        self.party = party
-        if party == 1:
-            self.velocity = pygame.Vector2(10*direction.x,10*direction.y)
-        elif party == 2:
-            self.velocity = pygame.Vector2(direction.x,direction.y)
         self.party = party
 
     def draw(self,screen):
@@ -105,35 +100,23 @@ while running:
     for bullet in bullets:
         if bullet.x < 1280 and bullet.x > 0 and bullet.y < 720 and bullet.y > 0:
             bulletCollisionRect = pygame.Rect(bullet.x-bullet.radius,bullet.y-bullet.radius,bullet.radius*2,bullet.radius*2)
-            if bullet.party == 1:
-                bullet.x += bullet.velocity.x
-                bullet.y += bullet.velocity.y
-                for thug in enemies:
-                    enemyCollisionRect = pygame.Rect(thug.x-thug.radius,thug.y-thug.radius,thug.radius*2,thug.radius*2)
-                    if bulletCollisionRect.colliderect(enemyCollisionRect):
-                        enemies.pop(enemies.index(thug))
+            match bullet.party:
+                case 1: #Disparos do Player
+                    bullet.x += bullet.direction.x*10
+                    bullet.y += bullet.direction.y*10
+                    for thug in enemies:
+                        enemyCollisionRect = pygame.Rect(thug.x-thug.radius,thug.y-thug.radius,thug.radius*2,thug.radius*2)
+                        if bulletCollisionRect.colliderect(enemyCollisionRect):
+                            enemies.pop(enemies.index(thug))
+                            bullets.pop(bullets.index(bullet))
+                            score +=1
+                case 2: #Disparos dos Inimigos
+                    bullet.x += (bullet.direction.x-bullet.spawnX)/25
+                    bullet.y += (bullet.direction.y-bullet.spawnY)/25
+                    playerCollisionRect = pygame.Rect(player_pos.x-15,player_pos.y-15,30,30)
+                    if bulletCollisionRect.colliderect(playerCollisionRect):
                         bullets.pop(bullets.index(bullet))
-                        score +=1
-            elif bullet.party == 2:
-                if (bullet.spawnX < bullet.velocity.x):
-                    destinyX = bullet.velocity.x-bullet.spawnX
-                    movementX = destinyX / 25
-                elif (bullet.spawnX > bullet.velocity.x):
-                    destinyX = bullet.spawnX-bullet.velocity.x
-                    movementX = destinyX / 25
-                if (bullet.spawnY < bullet.velocity.y):
-                    destinyY = bullet.velocity.y-bullet.spawnY
-                    movementY = destinyY / 25
-                elif (bullet.spawnY > bullet.velocity.y):
-                    destinyY = bullet.velocity.y-bullet.spawnY
-                    movementY = destinyY / 25
-                bullet.x = bullet.x+movementX
-                bullet.y = bullet.y+movementY
-                playerCollisionRect = pygame.Rect(protagonist.x-15,protagonist.y-15,30,30)
-                if bulletCollisionRect.colliderect(playerCollisionRect):
-                    bullets.pop(bullets.index(bullet))
-                    pygame.display.set_caption("Shootout Night"+"      Score: "+str(score)+"        GAME OVER")
-                    #running = False            
+                        running = False         
         else: bullets.pop(bullets.index(bullet))
         
 
@@ -174,14 +157,15 @@ while running:
         enemySpawnCD = 150*levelMult
     elif level == "MAX":
         enemySpawnSide = random.randint(1, 4)
-        if enemySpawnSide == 1:
-            enemies.append(enemy(random.randint(50, 1230), -50,15,15,15, 3,random.randint(50, 1230),random.randint(50, 670)))
-        if enemySpawnSide == 2:
-            enemies.append(enemy(random.randint(50, 1230), 770,15,15,15, 3,random.randint(50, 1230), random.randint(50, 670)))
-        if enemySpawnSide == 3:
-            enemies.append(enemy(-50, random.randint(50,670),15,15,15, 3,random.randint(50, 1230), random.randint(50,670)))
-        if enemySpawnSide == 4:
-            enemies.append(enemy(1330, random.randint(50, 670),15,15,15, 3,random.randint(50, 1230), random.randint(50, 670)))
+        match enemySpawnSide:
+            case 1:
+                enemies.append(enemy(random.randint(50, 1230), -50,15,15,15, 3,random.randint(50, 1230),random.randint(50, 670)))
+            case 2:
+                enemies.append(enemy(random.randint(50, 1230), 770,15,15,15, 3,random.randint(50, 1230), random.randint(50, 670)))
+            case 3:
+                enemies.append(enemy(-50, random.randint(50,670),15,15,15, 3,random.randint(50, 1230), random.randint(50,670)))
+            case 4:
+                enemies.append(enemy(1330, random.randint(50, 670),15,15,15, 3,random.randint(50, 1230), random.randint(50, 670)))
         enemySpawnCD = 150*levelMult
 
     #Inimigos Andando e Disparando
