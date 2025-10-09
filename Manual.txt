@@ -1,0 +1,7 @@
+WASD - Movimentação
+ARROWS - Atirar
+Shift - Correr
+
+
+O Level aumenta a frequência com que inimigos aparecem.
+Sobreviva o Máximo que puder!
