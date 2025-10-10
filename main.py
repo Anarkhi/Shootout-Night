@@ -141,7 +141,7 @@ async def game():
                         if bulletCollisionRect.colliderect(playerCollisionRect):
                             bullets.pop(bullets.index(bullet))
                             save_game(score)
-                            #running = False
+                            running = False
             else: bullets.pop(bullets.index(bullet))
 
 
