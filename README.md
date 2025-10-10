@@ -21,7 +21,7 @@ v1.0
 - And we are live!
 - The player can walk and shoot
 - Enemies spawn at the screen edges
-- Shooting na enemy kills it and gets you 1 Score
+- Shooting an enemy kills it and rewards you 1 Score
 - There is no way for the player to die
 - As time passes, the 'Level' increases, wich makes enemies spawn faster.
 
@@ -32,6 +32,15 @@ v1.1
 - Enemies now shoot the player (seems to no kill him tho, go figure).
 - At 'Level MAX(4)' enemies are able to walk towards the middle of the screen instead of being limited to the edges.
 
+
 v1.2
 - A tiny bit of cleanup in code logic
 - When the player is shot the game closes
+
+
+v1.3
+- 'Level' was renamed to 'Threat'
+- Implemented code to Save High Score
+- Score, High Score and Threat Level are displayed on screen
+- At "MAX THREAT" the game does a better job at showing it has reached bullet hell
+- The game can be played using the browser now (anarkhi.github.io/Shootout-Night/)

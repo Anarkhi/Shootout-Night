@@ -1,6 +1,7 @@
 import pygame
 import random
 import asyncio
+import json
 
 async def game():
     # pygame setup
@@ -16,9 +17,10 @@ async def game():
     enemySpawnCD = 150
     enemyCount = 0
     score = 0
-    level = 1
-    levelTimer = 500
-    levelMult = 1
+    hightScore = 0
+    threat = 1
+    threatTimer = 500
+    threatMult = 1
     ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.ogg")
     pygame.mixer.music.set_volume(0.4)
     pygame.mixer.music.play(-1)
@@ -63,24 +65,43 @@ async def game():
                 self.thugShotCD = thugShotCD
 
         def draw(self):
-                pygame.draw.circle(screen, "gray", pygame.Vector2(self.x,self.y), self.radius)
+            if threat != "MAX":
+                enemyColor = "gray"
+            else: enemyColor = "red"
+            pygame.draw.circle(screen, enemyColor, pygame.Vector2(self.x,self.y), self.radius)
 
     def redrawGameScreen():
         screen.fill("black")
+        show_score()
         protagonist.draw(player_pos)
         for bullet in bullets:
             bullet.draw(screen)
         for thug in enemies:
             thug.draw()
-        #show_score()
         pygame.display.flip()
 
-    #def show_score():
-    #    score_obj = pygame.font.SysFont('comicsans',50,True)
-    #    score_txt = score_obj.render("Score: " +str(score) ,1, (255,255,255))
-    #    screen.blit(score_txt,(30,5))
+    def show_score():
+        font_obj = pygame.font.SysFont('comicsans',50,True)
+        score_txt = font_obj.render("Score: " +str(score) ,1, (255,255,255))
+        hightScore_txt = font_obj.render("Hight Score: " +str(hightScore) ,1, (255,255,255))
+        threat_txt = font_obj.render("Threat: " +str(threat) ,1, (255,255,255))
+        screen.blit(score_txt,(20,20))
+        screen.blit(hightScore_txt,(20,60))
+        screen.blit(threat_txt,(1050,20))
 
+    def save_game(score):
+        if score > hightScore:
+            game_data = {"score": score}
+            with open("Assets/savegame.json",'w') as file:
+                file.write(json.dumps(game_data))
 
+    try:
+        with open("Assets/savegame.json", 'r') as f:
+            loaded_data = json.load(f)
+        print(f"Loaded score: {loaded_data['score']}")
+        hightScore = loaded_data["score"]
+    except FileNotFoundError:
+        print("No save game found.")
 
     # MainLoop
     protagonist = player(screen.get_width() / 2, screen.get_height() / 2,0,0)
@@ -95,7 +116,7 @@ async def game():
                 running = False
 
         # fill the screen with a color to wipe away anything from last frame
-        pygame.display.set_caption("Shootout Night"+"      Score: "+str(score)+"        Level: "+str(level)+"     Level Timer: "+str(levelTimer))
+        pygame.display.set_caption("Shootout Night")
 
 
         # Movimentação dos Disparos
@@ -118,34 +139,35 @@ async def game():
                         playerCollisionRect = pygame.Rect(player_pos.x-15,player_pos.y-15,30,30)
                         if bulletCollisionRect.colliderect(playerCollisionRect):
                             bullets.pop(bullets.index(bullet))
-                            running = False
+                            save_game(score)
+                            #running = False
             else: bullets.pop(bullets.index(bullet))
 
 
         keysPress = pygame.key.get_pressed()
         run = pygame.key.get_mods()
 
-        #Controle do Level
-        if levelTimer > 0 and level < 4:
-            levelTimer-=1
-        elif level != "MAX":
-            if level < 4:
-                level +=1
-                if level == 2:
-                    levelMult = 0.8
-                if level == 3:
-                    levelMult = 0.6
+        #Controle do Threat
+        if threatTimer > 0 and threat < 4:
+            threatTimer-=1
+        elif threat != "MAX":
+            if threat < 4:
+                threat +=1
+                if threat == 2:
+                    threatMult = 0.8
+                if threat == 3:
+                    threatMult = 0.6
             else:
-                levelMult = 0.4
-            if level < 4:
-                levelTimer = int(500/levelMult)
-            if level == 4:
-                level = "MAX"
+                threatMult = 0.4
+            if threat < 4:
+                threatTimer = int(500/threatMult)
+            if threat == 4:
+                threat = "MAX"
 
         #Inimigos Spawnando
         if enemySpawnCD > 0:
             enemySpawnCD -=1
-        elif level != "MAX":
+        elif threat != "MAX":
             enemySpawnSide = random.randint(1, 4)
             match enemySpawnSide:
                 case 1:
@@ -156,8 +178,8 @@ async def game():
                     enemies.append(enemy(-50, random.randint(50,670),15,15,15, 1, 50,random.randint(50,670)))
                 case 4:
                     enemies.append(enemy(1330, random.randint(50, 670),15,15,15,1, 1230,random.randint(50, 670)))
-            enemySpawnCD = 150*levelMult
-        elif level == "MAX":
+            enemySpawnCD = 150*threatMult
+        elif threat == "MAX":
             enemySpawnSide = random.randint(1, 4)
             match enemySpawnSide:
                 case 1:
@@ -168,14 +190,13 @@ async def game():
                     enemies.append(enemy(-50, random.randint(50,670),15,15,15, 3,random.randint(50, 1230), random.randint(50,670)))
                 case 4:
                     enemies.append(enemy(1330, random.randint(50, 670),15,15,15, 3,random.randint(50, 1230), random.randint(50, 670)))
-            enemySpawnCD = 150*levelMult
+            enemySpawnCD = 150*threatMult
 
         #Inimigos Andando e Disparando
         for thug in enemies:
             thug.thugShotCD -=1
             if thug.thugShotCD == 0:
                 bullets.append(projectile(round(thug.x),round(thug.y),round(thug.x),round(thug.y),3,"gray",pygame.Vector2(player_pos.x,player_pos.y),2))
-                #print (str(player_pos.x)+" "+str(player_pos.y))
                 thug.thugShotCD = 100
             if (thug.x < thug.targetStopX):
                 thug.x +=thug.speed
