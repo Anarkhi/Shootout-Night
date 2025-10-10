@@ -19,7 +19,7 @@ async def game():
     level = 1
     levelTimer = 500
     levelMult = 1
-    ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.mp3")
+    ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.ogg")
     pygame.mixer.music.set_volume(0.4)
     pygame.mixer.music.play(-1)
 
