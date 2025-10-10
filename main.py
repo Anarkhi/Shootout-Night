@@ -2,14 +2,15 @@ import pygame
 import random
 import asyncio
 
+# pygame setup
+pygame.init()
+screen = pygame.display.set_mode((1280, 720))
+pygame.display.set_caption("Shootout Night")
+icon_image = pygame.image.load("Assets/ShootoutNightIcon.png")
+pygame.display.set_icon(icon_image)
+clock = pygame.time.Clock()
+
 async def game():
-    # pygame setup
-    pygame.init()
-    screen = pygame.display.set_mode((1280, 720))
-    pygame.display.set_caption("Shootout Night")
-    icon_image = pygame.image.load("Assets/ShootoutNightIcon.png")
-    pygame.display.set_icon(icon_image)
-    clock = pygame.time.Clock()
     dt = 0
     baseTime = 1000
     shotCD = 0
