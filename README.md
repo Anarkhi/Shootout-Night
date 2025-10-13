@@ -44,3 +44,8 @@ v1.3
 - Score, High Score and Threat Level are displayed on screen
 - At "MAX THREAT" the game does a better job at showing it has reached bullet hell
 - The game can be played using the browser now (anarkhi.github.io/Shootout-Night/)
+
+
+v1.4
+- Fix a bug where the wait time between shots would reset no matter if you shoot or not, it should feel way better now
+- Added Sounds for when the player shoots, and when the time between shots hits 0 (Reload Sound)
