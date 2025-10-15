@@ -14,6 +14,24 @@ icon_image = pygame.image.load("Assets/ShootoutNightIcon.png")
 pygame.display.set_icon(icon_image)
 clock = pygame.time.Clock()
 
+dt = 0
+baseTime = 1000
+threat = 1
+score = 0
+hightScore = 0
+bullets = []
+enemies = []
+
+
+protagonist = entities.player(screen.get_width() / 2, screen.get_height() / 2,0,0, screen)
+ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.ogg")
+shotSound1,shotSound2,reloadSound = pygame.mixer.Sound("Assets/Shot1.ogg"),pygame.mixer.Sound("Assets/Shot2.ogg"),pygame.mixer.Sound("Assets/Reload.ogg")
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(-1)
+
+player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+enemy_pos = pygame.Vector2(0,0)
+
 def redrawGameScreen(protagonist, player_pos, bullets, enemies, score, hightScore, threat):
         screen.fill("black")
         show_score(score, hightScore, threat)
@@ -34,103 +52,27 @@ def show_score(score, hightScore, threat):
     screen.blit(threat_txt,(1050,20))
 
 def save_game(score, hightScore):
-    if score > hightScore:
-        game_data = {"score": score}
-        with open("Assets/savegame.json",'w') as file:
-            file.write(json.dumps(game_data))
+    if score < hightScore:
+        return
 
-async def game():
-    dt = 0
-    baseTime = 1000
+    game_data = {"score": score}
+    with open("Assets/savegame.json",'w') as file:
+        file.write(json.dumps(game_data))
+
+def player_shoots():
+    shotSoundRand = random.randint(1, 2)
+    match shotSoundRand:
+        case 1: shotSound1.play()
+        case 2: shotSound2.play()
+
+async def game(threat,protagonist, score, hightScore):
+
+    threatTimer = 500
+    threat = threat
+    threatMult = 1
     shotCD = 0
     enemySpawnCD = 150
     enemyCount = 0
-    score = 0
-    hightScore = 0
-    threat = 1
-    threatTimer = 500
-    threatMult = 1
-    ambientTune = pygame.mixer.music.load("Assets/ShootoutNightAmbience.ogg")
-    shotSound1,shotSound2,reloadSound = pygame.mixer.Sound("Assets/Shot1.ogg"),pygame.mixer.Sound("Assets/Shot2.ogg"),pygame.mixer.Sound("Assets/Reload.ogg")
-    pygame.mixer.music.set_volume(0.4)
-    pygame.mixer.music.play(-1)
-
-    player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
-    enemy_pos = pygame.Vector2(0,0)
-
-    def player_shoots():
-        shotSoundRand = random.randint(1, 2)
-        match shotSoundRand:
-            case 1: shotSound1.play()
-            case 2: shotSound2.play()
-        
-
-    class player(object):
-            def __init__(self, x, y, width, height):
-                self.x = x
-                self.y = y
-                self.width = width
-                self.height = height
-                self.speed = 200
-            def draw(self,player_pos):
-                pygame.draw.circle(screen, "white", player_pos, 15)
-
-    class projectile(object):
-        def __init__(self,x,y,spawnX,spawnY,radius,color,direction,party):
-            self.x = x
-            self.y = y
-            self.radius = radius
-            self.color = color
-            self.direction = direction
-            self.spawnX = spawnX
-            self.spawnY = spawnY
-            self.party = party
-
-        def draw(self,screen):
-            pygame.draw.circle(screen,self.color,(self.x,self.y),self.radius)
-
-    class enemy(object):
-        def __init__(self, x, y, radius, width, height, speed, targetStopX,targetStopY,thugShotCD=200):
-                self.x = x
-                self.y = y
-                self.radius = radius
-                self.width = width
-                self.height = height
-                self.targetStopX = targetStopX
-                self.targetStopY = targetStopY
-                self.speed = speed
-                self.thugShotCD = thugShotCD
-
-        def draw(self):
-            if threat != "MAX":
-                enemyColor = "gray"
-            else: enemyColor = "red"
-            pygame.draw.circle(screen, enemyColor, pygame.Vector2(self.x,self.y), self.radius)
-
-    def redrawGameScreen():
-        screen.fill("black")
-        show_score()
-        protagonist.draw(player_pos)
-        for bullet in bullets:
-            bullet.draw(screen)
-        for thug in enemies:
-            thug.draw()
-        pygame.display.flip()
-
-    def show_score():
-        font_obj = pygame.font.SysFont('comicsans',50,True)
-        score_txt = font_obj.render("Score: " +str(score) ,1, (255,255,255))
-        hightScore_txt = font_obj.render("Hight Score: " +str(hightScore) ,1, (255,255,255))
-        threat_txt = font_obj.render("Threat: " +str(threat) ,1, (255,255,255))
-        screen.blit(score_txt,(20,20))
-        screen.blit(hightScore_txt,(20,60))
-        screen.blit(threat_txt,(1050,20))
-
-    def save_game(score):
-        if score > hightScore:
-            game_data = {"score": score}
-            with open("Assets/savegame.json",'w') as file:
-                file.write(json.dumps(game_data))
 
     try:
         with open("Assets/savegame.json", 'r') as f:
@@ -141,10 +83,8 @@ async def game():
         print("No save game found.")
 
     # MainLoop
-    protagonist = entities.player(screen.get_width() / 2, screen.get_height() / 2,0,0, screen)
+    protagonist = protagonist
     running = True
-    bullets = []
-    enemies = []
     while running:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
@@ -177,10 +117,8 @@ async def game():
                         if bulletCollisionRect.colliderect(playerCollisionRect):
                             bullets.pop(bullets.index(bullet))
                             save_game(score, hightScore)
-                            save_game(score)
                             running = False
             else: bullets.pop(bullets.index(bullet))
-
 
         keysPress = pygame.key.get_pressed()
         run = pygame.key.get_mods()
@@ -255,26 +193,18 @@ async def game():
         else:
             if keysPress[pygame.K_LEFT]:
                 bullets.append(entities.projectile(round(player_pos.x-6),round(player_pos.y),round(player_pos.x-6),round(player_pos.y),3,"white",-pygame.Vector2(1,0),1))
+                player_shoots()
+                shotCD = 40
             elif keysPress[pygame.K_RIGHT]:
                 bullets.append(entities.projectile(round(player_pos.x+6),round(player_pos.y),round(player_pos.x+6),round(player_pos.y),3,"white",pygame.Vector2(1,0),1))
+                player_shoots()
+                shotCD = 40
             elif keysPress[pygame.K_UP]:
                 bullets.append(entities.projectile(round(player_pos.x),round(player_pos.y-6),round(player_pos.x),round(player_pos.y-6),3,"white",-pygame.Vector2(0,1),1))
+                player_shoots()
+                shotCD = 40
             elif keysPress[pygame.K_DOWN]:
                 bullets.append(entities.projectile(round(player_pos.x),round(player_pos.y+6),round(player_pos.x),round(player_pos.y+6),3,"white",pygame.Vector2(0,1),1))
-            shotCD = 40
-                bullets.append(projectile(round(player_pos.x-6),round(player_pos.y),round(player_pos.x-6),round(player_pos.y),3,"white",-pygame.Vector2(1,0),1))
-                player_shoots()
-                shotCD = 40
-            elif keysPress[pygame.K_RIGHT]:
-                bullets.append(projectile(round(player_pos.x+6),round(player_pos.y),round(player_pos.x+6),round(player_pos.y),3,"white",pygame.Vector2(1,0),1))
-                player_shoots()
-                shotCD = 40
-            elif keysPress[pygame.K_UP]:
-                bullets.append(projectile(round(player_pos.x),round(player_pos.y-6),round(player_pos.x),round(player_pos.y-6),3,"white",-pygame.Vector2(0,1),1))
-                player_shoots()
-                shotCD = 40
-            elif keysPress[pygame.K_DOWN]:
-                bullets.append(projectile(round(player_pos.x),round(player_pos.y+6),round(player_pos.x),round(player_pos.y+6),3,"white",pygame.Vector2(0,1),1))
                 player_shoots()
                 shotCD = 40
 
@@ -312,8 +242,9 @@ async def game():
         # independent physics.
         dt = clock.tick(60) / baseTime
         redrawGameScreen(protagonist, player_pos, bullets, enemies, score, hightScore, threat)
+        #redrawGameScreen(score, hightScore, threat)
         await asyncio.sleep(0)  # Yield control to the event loop
 
     pygame.quit()
 
-asyncio.run(game())
+asyncio.run(game(threat, protagonist, score, hightScore))
